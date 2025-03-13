@@ -1,0 +1,35 @@
+from user_status import Status
+from agent_appt_management.agent import AgentAppointmentManagement
+
+if __name__ == "__main__":
+    # Harcode user_id==user_phone_number
+    user_id = "5566776677"
+    # Hardcode business_id==business_phone_number
+    business_id = "5599889966"
+
+    stat = Status()
+    agent = AgentAppointmentManagement()
+
+    session_dict = stat.session_status(user_id)
+    user_stat_dict = stat.user_status(user_id, business_id)
+    messages_history = session_dict["messages_history"]
+
+    config = {"configurable":{
+        "thread_id":user_id,
+        "user_id":user_id,
+        "user_name":user_stat_dict["user_name"],
+        "business_id":business_id,
+        "is_register":user_stat_dict["is_register"]
+        }
+    }
+
+    print("="*100)
+    while True:
+        user_input = input("User: ")
+        if user_input == "exit":
+            break
+        response = agent.conversation(user_input, config)
+        print()
+        #print(response["messages"][-1].response_metadata)
+        print()
+        print("Agent:", response["messages"][-1].content)

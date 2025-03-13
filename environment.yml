@@ -1,0 +1,14 @@
+name: glamflow
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - boto3==1.37.11
+  - langchain-community==0.3.19
+  - langchain-openai
+  - langchain
+  - langgraph
+  - fastapi==0.115.11
+  - python-dotenv==1.0.1
+  - twilio==9.4.6
+  - uvicorn==0.34.0

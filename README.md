@@ -1,54 +1,66 @@
-# Glamflow Agent
 
-Este directorio contiene el código fuente del agente conversacional de Glamflow, especializado en belleza y cuidado personal. El agente está diseñado para interactuar con los usuarios a través de WhatsApp, ofreciendo servicios como registro de usuarios, agendamiento de citas, envío de recordatorios y procesamiento de pagos en línea.
+## DEV
+The proyect has configured for run with DynamoDB locally, because boto3 was pointed to local. 
+Change this for prod environment.
 
-## Estructura del Directorio
+## Run proyect
 
-- `agent.py`: Implementación principal del agente conversacional utilizando LangChain y OpenAI.
-- `prompt.py`: Contiene el prompt utilizado para guiar las respuestas del agente.
-- `tools/`: Directorio que contiene herramientas adicionales utilizadas por el agente.
-  - `dynamo_tool.py`: Herramientas para interactuar con DynamoDB.
-
-## Archivos
-
-### agent.py
-
-Este archivo contiene la clase `AgentOpenAI` que configura y ejecuta el agente conversacional. Utiliza LangChain para manejar la memoria de la conversación y OpenAI para generar respuestas.
-
-### prompt.py
-
-Contiene el prompt `AGENT_PROMPT` que define las instrucciones y el comportamiento del agente. Este prompt guía al agente para que sea amable, útil y enfocado en los servicios del negocio.
-
-### tools/dynamo_tool.py
-
-Este archivo contiene herramientas para interactuar con DynamoDB, como registrar usuarios y gestionar citas. Utiliza Boto3 para comunicarse con DynamoDB y LangChain para definir las herramientas.
-
-## Instalación
-
-Para instalar las dependencias necesarias, ejecuta:
-
+For run any part of aplication you need to set "".env"" file as folows:
 ```sh
-conda env create -f environment.yml
-```
-para activar el entorno, ejecuta:
-```sh
-conda activate glamflow
-```
+TWILIO_ACCOUNT_SID=twilio-token
+TWILIO_AUTH_TOKEN=twilio-secret
+OPENAI_API_KEY=openai-apikey
 
-## Uso
-```sh
-python agent.py
-```
+AWS_ACCESS_KEY_ID=fackeAccesKeyID
+AWS_SECRET_ACCESS_KEY=fackeSecretAccesKey
+AWS_REGION=mx-central-1
 
-## Configuración
-Crea un archivo `.env` en el directorio raíz con las siguientes variables de entorno:
-
-```sh
-AWS_ACCESS_KEY_ID=your_aws_access_key_id
-AWS_SECRET_ACCESS_KEY=your_aws_secret_access_key
-AWS_REGION=your_aws_region
-OPENAI_API_KEY=openai_api_key
-LLM_MODEL=gpt-4o-mini
-USER_TABLE=gf-user-dev
+LLM_MODEL = gpt-4o-mini
+USER_TABLE = gf-user-dev
 APPOINTMENT_TABLE=gf-appointment-dev
+SESSION_TABLE=gf-session-dev
+BUSINESS_TABLE=gf-business-dev
+```
+### Dependences
+Install and setup ngrok:
+
+### Full aplication
+For run all aplication you need twilio tokens defined in .env.
+Afther  go to agen dir that run:
+```sh
+cd agent
+```
+and run service(API) locally:
+```sh
+uvicorn whatsapp:app --host 0.0.0.0 --port 80 --reload
+```
+To expose that to web use ngrok(just for dev or test). No use in a production:
+```sh
+ngrok http --url=infinite-seriously-racer.ngrok-free.app 80
+```
+
+Configure twilio endpoint or webhook to point ngrok url.
+
+### Run Agent locally
+This only ejecute the Agent on local [for dev].
+for this inside agent directory ejecute this in terminal:
+```sh
+python main.py
+```
+
+
+## Setup DynamoDB locally
+To setup DynamoDB locally, you need **Docker** and **aws cli** installed on your machine.
+
+
+## Ejecute
+
+Open a terminal in root directory. Alow ejecution acces for script with:
+```sh
+chmod +x setup_dynamodb_local.sh
+```
+
+Execute script
+```sh
+./setup_dynamodb.sh
 ```
