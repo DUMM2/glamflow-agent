@@ -1,4 +1,5 @@
 import os
+import asyncio
 from dotenv import load_dotenv
 from twilio.rest import Client
 from twilio.request_validator import RequestValidator
@@ -39,8 +40,8 @@ async def chat(
     user_input = Body
     print(user_id, business_id)
 
-    session_dict = stat.session_status(user_id)
-    user_stat_dict = stat.user_status(user_id, business_id)
+    session_dict = await stat.session_status(user_id, business_id)
+    user_stat_dict = await stat.user_status(user_id, business_id)
     messages_history = session_dict["messages_history"]
 
     config = {"configurable":{
@@ -48,7 +49,8 @@ async def chat(
         "user_id":user_id,
         "user_name":user_stat_dict["user_name"],
         "business_id":business_id,
-        "is_register":user_stat_dict["is_register"]
+        "is_register":user_stat_dict["is_register"],
+        "session_init_date_time":session_dict["init_date_time"]
         }
     }
 
@@ -63,6 +65,8 @@ async def chat(
     )
 
     return Response(content=str(to_whatsapp), media_type="application/xml")
+
+
 
 
 def appointemt_reminder(from_, to, date, time):

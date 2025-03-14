@@ -53,7 +53,7 @@ def register_user(name:str, birth_date:str, postal_code:str, config:RunnableConf
     """
     user_state = config.get("configurable", {})
     
-    birth_date = datetime.strptime(birth_date, "%d-%m-%Y").strftime("%Y-%m-%d")
+    birth_date = datetime.strptime(birth_date, "%d-%m-%Y").strftime("%d-%m-%Y")
     phone = user_state.get("user_id", 0)
     item = {
             "user_id": int(phone),
