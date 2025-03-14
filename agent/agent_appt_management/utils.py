@@ -1,5 +1,6 @@
 import os
 import boto3
+from boto3.dynamodb.conditions import Key
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -38,3 +39,13 @@ class DynamoDB:
             }
         )
         return response.get("Items", [])
+    
+    def update_item(self, table_name:str, key:dict, column_to_update:str, value_to_update:any):
+        table = self.dynamodb.Table(table_name)
+        response = table.update_item(
+            Key=key,
+            UpdateExpression=f"SET {column_to_update} = :new_status",
+            ExpressionAttributeValues={
+                ":new_status": value_to_update
+            }
+        )

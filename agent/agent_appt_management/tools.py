@@ -8,6 +8,7 @@ from langchain_core.runnables.config import RunnableConfig
 
 dynamodb = DynamoDB()
 USER_TABLE = os.getenv("USER_TABLE")
+SESSION_TABLE = os.getenv("SESSION_TABLE")
 
 @tool
 def state_check(config: RunnableConfig) -> dict:
@@ -31,15 +32,15 @@ def state_check(config: RunnableConfig) -> dict:
     print(f"    user is registered: {is_registered}")
     return {"Output": " State Checked"}
 
-@tool
-def check_user_registration(config:RunnableConfig):
-    """
-    Verifica si un usuario está registrado antes de solicitar su información.
-    """
-    user_state = config.get("configurable", {})
-    if user_state.get("is_registered", False):
-        return {"Output": "El usuario ya esta registrado"}
-    return {"Output": "El usuario no esta registrado"}
+# @tool
+# def check_user_registration(config:RunnableConfig):
+#     """
+#     Verifica si un usuario está registrado antes de solicitar su información.
+#     """
+#     user_state = config.get("configurable", {})
+#     if user_state.get("is_registered", False):
+#         return {"Output": "El usuario ya esta registrado"}
+#     return {"Output": "El usuario no esta registrado"}
     
 @tool
 def register_user(name:str, birth_date:str, postal_code:str, config:RunnableConfig):
@@ -53,7 +54,7 @@ def register_user(name:str, birth_date:str, postal_code:str, config:RunnableConf
     user_state = config.get("configurable", {})
     
     birth_date = datetime.strptime(birth_date, "%d-%m-%Y").strftime("%Y-%m-%d")
-    phone = user_state.get("user_number", 0)
+    phone = user_state.get("user_id", 0)
     item = {
             "user_id": int(phone),
             "name": name,
@@ -64,7 +65,32 @@ def register_user(name:str, birth_date:str, postal_code:str, config:RunnableConf
         }
     try:
         dynamodb.put_item(table_name=USER_TABLE, item=item)
-        return "Usuario registrado correctamente"
+        return {"Output": "Usuario registrado correctamente"}
     except Exception as e:
-        return f"No se puedo registrar al usuario en la base por motivo: {e}"
+        return {"Output": f"No se puedo registrar al usuario en la base por motivo: {e}"}
     
+@tool
+def finish_session(config:RunnableConfig):
+    """
+    Finalizar la session de la conversacion. Se ejecuta cuando el usuario se despide o 
+    ya no tiene interes en continuar la conversacion, o no necesita nada mas.
+    """
+    user_state = config.get("configurable", {})
+    user_id = user_state.get("user_id", 0)
+    business_id =  user_state.get("business_id", 0)
+    init_date_time = user_state.get("session_init_date_time", "")
+    try:
+        dynamodb.update_item(
+            table_name=SESSION_TABLE,
+            key={
+                "session_id": str(user_id) +"-"+ str(business_id),
+                "init_date_time":init_date_time
+            },
+            column_to_update="session_status",
+            value_to_update="closed"
+        )
+        return {"Output": "Session finalizada, despidete"}
+    except Exception as e:
+        return {"Output":f"No se pudo finalizar session {e}"}
+
+

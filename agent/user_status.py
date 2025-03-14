@@ -2,7 +2,10 @@ import os
 import boto3
 from dotenv import load_dotenv
 from datetime import datetime
-from boto3.dynamodb.conditions import Key
+from boto3.dynamodb.conditions import Key, Attr
+
+# dev
+import json
 
 load_dotenv()
 
@@ -15,34 +18,36 @@ class Status:
         self.session_table = dynamodb.Table(os.getenv("SESSION_TABLE"))
         self.business_table = dynamodb.Table(os.getenv("BUSINESS_TABLE"))
     
-    def session_status(self, user_id:str):
+    async def session_status(self, user_id:str, business_id:str):
         session = {}
         user_id = int(user_id)
-
+        session_id = str(user_id) +"-"+ str(business_id)
         session_response = self.session_table.query(
-            IndexName="StatusIndex",
-            KeyConditionExpression=Key("status").eq("active") & Key("user_id").eq(user_id)
+            KeyConditionExpression= Key("session_id").eq(session_id),
+            FilterExpression=Attr("session_status").eq("active")
         )
-        session_response = session_response.get("Item", {})
 
+        session_response = session_response.get("Items", {})
         # Create session if not exist active
-        if "user_id" not in session_response:
-            self.session_table.put_item(Item={
-                "user_id":user_id,
+        if  len(session_response) == 0:
+            item = {
+                "session_id":str(user_id) +"-"+ str(business_id),
                 "init_date_time": datetime.now().strftime("%d-%m-%y_%H:%M"),
-                "status":"active",
-                "messages_histoy":[]
-            })
-            session = {"session_id":user_id, "messages_history":[]}
-            return session
+                "session_status":"active",
+                "messages_history":[]
+            }
+            self.session_table.put_item(Item=item)
+            return item
+        
         
         # Set session params
-        session["session_id"]=session_response.get("user_id", None)
+        session_response =  session_response[0]
+        session["session_id"]=session_response.get("session_id", None)
         session["init_date_time"]=session_response.get("init_date_time","")
-        session["messages_history"]=session_response.get("messages_histoy",[])
+        session["messages_history"]=session_response.get("messages_history",[])
         return session
 
-    def user_status(self, user_id:str, business_id:str):
+    async def user_status(self, user_id:str, business_id:str):
         status = {}
         user_id = int(user_id)
         business_id = int(business_id)
@@ -51,7 +56,9 @@ class Status:
         user_response = self.user_table.get_item(
             Key={"user_id":user_id}
         )
+
         user_response = user_response.get("Item", {})
+        print(user_response)
 
         status["user_name"] = user_response.get("name", "")
         status["user_id"] = user_id

@@ -2,8 +2,8 @@ import os
 from dotenv import load_dotenv
 from twilio.rest import Client
 from twilio.request_validator import RequestValidator
-from twilio.twiml.messaging_response import MessagingResponse
 from fastapi import FastAPI, Form, Response, Request, HTTPException
+from fastapi.responses import StreamingResponse
 from user_status import Status
 from agent_appt_management.agent import AgentAppointmentManagement
 
@@ -34,11 +34,10 @@ async def chat(
     ):
         raise HTTPException(status_code=400, detail="Error in Twilio Signature")
 
-    print(From, To)
     # Status check
     user_id, business_id = int(From.split("+")[1]), int(To.split("+")[1])
-    print(user_id, business_id)
     user_input = Body
+    print(user_id, business_id)
 
     session_dict = stat.session_status(user_id)
     user_stat_dict = stat.user_status(user_id, business_id)
