@@ -59,7 +59,10 @@ Open a terminal in root directory. Alow ejecution acces for script with:
 ```sh
 chmod +x setup_dynamodb_local.sh
 ```
-
+### Si ya tienes descargado docker 
+```
+docker run -p 8000:8000 amazon/dynamodb-local -shareDb true
+```
 Execute script
 ```sh
 ./setup_dynamodb.sh

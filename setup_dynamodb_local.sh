@@ -39,18 +39,18 @@ echo "🔹 Creando la tabla gf-session-dev con índice secundario..."
 aws dynamodb create-table \
     --table-name gf-session-dev \
     --attribute-definitions \
-        AttributeName=user_id,AttributeType=N \
+        AttributeName=session_id,AttributeType=S \
         AttributeName=init_date_time,AttributeType=S \
-        AttributeName=status,AttributeType=S \
+        AttributeName=session_status,AttributeType=S \
     --key-schema \
-        AttributeName=user_id,KeyType=HASH \
+        AttributeName=session_id,KeyType=HASH \
         AttributeName=init_date_time,KeyType=RANGE \
     --billing-mode PAY_PER_REQUEST \
     --global-secondary-indexes '[
         {
             "IndexName": "StatusIndex",
             "KeySchema": [
-                {"AttributeName": "status", "KeyType": "HASH"}
+                {"AttributeName": "session_status", "KeyType": "HASH"}
             ],
             "Projection": {"ProjectionType": "ALL"}
         }
