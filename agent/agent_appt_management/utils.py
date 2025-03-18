@@ -42,10 +42,25 @@ class DynamoDB:
     
     def update_item(self, table_name:str, key:dict, column_to_update:str, value_to_update:any):
         table = self.dynamodb.Table(table_name)
-        response = table.update_item(
-            Key=key,
-            UpdateExpression=f"SET {column_to_update} = :new_status",
-            ExpressionAttributeValues={
-                ":new_status": value_to_update
-            }
-        )
+        try:
+            response = table.update_item(
+                Key=key,
+                UpdateExpression=f"SET {column_to_update} = :new_status",
+                ExpressionAttributeValues={
+                    ":new_status": value_to_update
+                    }
+                    )
+        except Exception as e:
+            return {"error": f"Error al actualizar la cita: {str(e)}"}
+
+    def get_appointments(self, table_name:str ,user_id:int):
+        table = self.dynamodb.Table(table_name)
+        try:
+            response = table.query(
+                KeyConditionExpression="user_id = :user_id",
+                FilterExpression="appointment_status = :status",
+                ExpressionAttributeValues={":user_id": int(user_id), ":status": "active"}
+                )
+            return response.get("Items", [])
+        except Exception as e:
+            return {"error": f"Error al consultar citas: {str(e)}"}

@@ -1,6 +1,7 @@
 import os
 from typing import Annotated
 from datetime import datetime
+import json
 from langchain_core.tools import tool
 from langgraph.prebuilt import InjectedState
 from agent_appt_management.utils import DynamoDB
@@ -9,6 +10,7 @@ from langchain_core.runnables.config import RunnableConfig
 dynamodb = DynamoDB()
 USER_TABLE = os.getenv("USER_TABLE")
 SESSION_TABLE = os.getenv("SESSION_TABLE")
+APPOINTMENT_TABLE = os.getenv("APPOINTMENT_TABLE")
 
 @tool
 def state_check(config: RunnableConfig) -> dict:
@@ -92,5 +94,55 @@ def finish_session(config:RunnableConfig):
         return {"Output": "Session finalizada, despidete"}
     except Exception as e:
         return {"Output":f"No se pudo finalizar session {e}"}
+
+
+@tool
+def cancel_appointment(date_appointment:str,config: RunnableConfig):
+    """
+    Cancela una cita que coincida con la fecha que indica el usaurio.
+    Se modifica el estado de la cita en la base de datos.
+    Args:
+        date_appointment (str): Fecha de la cita
+    """
+    user_state = config.get("configurable", {})
+    user_id = user_state.get("user_id", 0)
+
+    
+    try:
+        dynamodb.update_item(
+            table_name=APPOINTMENT_TABLE,
+            key={
+                "user_id": int(user_id), 
+                "date_appointment": str(date_appointment)
+            },
+            column_to_update="appointment_status",
+            value_to_update="canceled"
+        )
+        return {"Output": "Cita cancelada correctamente"}
+    except Exception as e:
+        return {"Output":f"No se pudo cancelar la cita {e}"}
+
+
+
+@tool
+def consult_appointment(config: RunnableConfig):
+    """
+    Consulta todas las citas activas del mismo usuario y las muestra.
+    """
+    user_state = config.get("configurable", {})
+    user_id = user_state.get("user_id", 0)
+    
+    try:
+        response = dynamodb.get_appointments(
+            table_name=APPOINTMENT_TABLE,
+            user_id=int(user_id)
+            )
+        appointment_dates = [appt["date_appointment"] for appt in response if "date_appointment" in appt]
+        if response:
+            return {"appointments": response}
+        else:
+            return {"message": "No hay citas registradas para este usuario."}
+    except Exception as e:
+        return {"Output":f"No se pudo verificar las citas {e}"}
 
 

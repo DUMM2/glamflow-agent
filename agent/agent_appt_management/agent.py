@@ -4,7 +4,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.prebuilt import create_react_agent
 from langgraph.checkpoint.memory import MemorySaver
-from agent_appt_management.tools import register_user, finish_session
+from agent_appt_management.tools import register_user, finish_session, cancel_appointment, consult_appointment
 from agent_appt_management.prompt import AGENT_PROMPT
 
 load_dotenv()
@@ -20,7 +20,9 @@ class AgentAppointmentManagement:
                     )
         self.tools = [
             register_user,
-            finish_session
+            finish_session,
+            cancel_appointment,
+            consult_appointment
             ]
         
         self.agent = create_react_agent(

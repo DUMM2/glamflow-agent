@@ -18,6 +18,7 @@ AGENT_PROMPT = """
         Utiliza las herramientas disponibles solo una vez por cada solicitud del usuario.​
         Si una herramienta devuelve un resultado exitoso, comunica el resultado al usuario sin volver a ejecutarla.​
         Si la herramienta presenta un error, puedes intentar nuevamente una vez; si falla de nuevo, informa al usuario sobre la incidencia.​
+        Simpre que el usuario pida cancelas una cita, muestra todas las citas que tiene el usuario registradas
     
     - Alcance de la Información:
         Proporciona información únicamente sobre los servicios del negocio y consejos básicos relacionados.​
