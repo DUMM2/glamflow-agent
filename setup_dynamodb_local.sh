@@ -70,6 +70,36 @@ aws dynamodb create-table \
     --profile local
 echo "✅ Tabla gf-business-dev creada con éxito."
 
+# Crear tabla Writes mesagges
+echo "🔹 Creando la tabla Writes..."
+aws dynamodb create-table \
+    --table-name writes \
+    --billing-mode PAY_PER_REQUEST \
+    --attribute-definitions \
+        AttributeName=thread_id_checkpoint_id_checkpoint_ns,AttributeType=S \
+        AttributeName=task_id_idx,AttributeType=S \
+    --key-schema \
+        AttributeName=thread_id_checkpoint_id_checkpoint_ns,KeyType=HASH \
+        AttributeName=task_id_idx,KeyType=RANGE \
+    --endpoint-url http://localhost:8000 \
+    --profile local
+echo "✅ Tabla Writes creada con éxito."
+
+# Create tabla Checkpoints
+echo "🔹 Creando la tabla checkpoints..."
+aws dynamodb create-table \
+    --table-name checkpoints \
+    --billing-mode PAY_PER_REQUEST \
+    --attribute-definitions \
+        AttributeName=thread_id,AttributeType=S \
+        AttributeName=checkpoint_id,AttributeType=S \
+    --key-schema \
+        AttributeName=thread_id,KeyType=HASH \
+        AttributeName=checkpoint_id,KeyType=RANGE \
+    --endpoint-url http://localhost:8000 \
+    --profile local
+echo "✅ Tabla checkpoints creada con éxito."
+
 # Listar todas las tablas creadas
 echo "🔹 Listando todas las tablas en DynamoDB Local..."
 aws dynamodb list-tables --endpoint-url http://localhost:8000 --profile local

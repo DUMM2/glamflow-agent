@@ -1,16 +1,10 @@
 import os
-from typing import Annotated
 from datetime import datetime
-import json
 from langchain_core.tools import tool
-from langgraph.prebuilt import InjectedState
 from agent_appt_management.utils import DynamoDB
 from langchain_core.runnables.config import RunnableConfig
 
 dynamodb = DynamoDB()
-USER_TABLE = os.getenv("USER_TABLE")
-SESSION_TABLE = os.getenv("SESSION_TABLE")
-APPOINTMENT_TABLE = os.getenv("APPOINTMENT_TABLE")
 
 @tool
 def state_check(config: RunnableConfig) -> dict:
@@ -66,7 +60,7 @@ def register_user(name:str, birth_date:str, postal_code:str, config:RunnableConf
 
         }
     try:
-        dynamodb.put_item(table_name=USER_TABLE, item=item)
+        dynamodb.put_item(table_name=dynamodb.user_table, item=item)
         return {"Output": "Usuario registrado correctamente"}
     except Exception as e:
         return {"Output": f"No se puedo registrar al usuario en la base por motivo: {e}"}
@@ -78,18 +72,28 @@ def finish_session(config:RunnableConfig):
     ya no tiene interes en continuar la conversacion, o no necesita nada mas.
     """
     user_state = config.get("configurable", {})
-    user_id = user_state.get("user_id", 0)
-    business_id =  user_state.get("business_id", 0)
+    user_id = int(user_state.get("user_id", 0))
+    business_id =  int(user_state.get("business_id", 0))
     init_date_time = user_state.get("session_init_date_time", "")
+
     try:
-        dynamodb.update_item(
-            table_name=SESSION_TABLE,
-            key={
-                "session_id": str(user_id) +"-"+ str(business_id),
-                "init_date_time":init_date_time
-            },
-            column_to_update="session_status",
-            value_to_update="closed"
+        key={
+                "session_id": f'{user_id}-{business_id}',
+                "init_date_time":str(init_date_time)
+            }
+        print(key)
+        dynamodb.session_table.update_item(
+            Key=key,
+            UpdateExpression='SET #status = :status, final_date_time = :f_datetime',
+        ExpressionAttributeNames={
+            '#status': 'session_status'
+        },
+        ExpressionAttributeValues={
+            ':status': 'closed',
+            ':current_status': 'active',  # Valor actual esperado
+            ':f_datetime' : datetime.now().strftime("%d-%m-%y_%H:%M:%S")
+        },
+        ConditionExpression='attribute_exists(session_id) AND #status = :current_status'
         )
         return {"Output": "Session finalizada, despidete"}
     except Exception as e:

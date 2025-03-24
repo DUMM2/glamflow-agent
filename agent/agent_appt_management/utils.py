@@ -8,7 +8,17 @@ load_dotenv()
 
 class DynamoDB:
     def __init__(self):
+        USER_TABLE = os.getenv("USER_TABLE")
+        SESSION_TABLE = os.getenv("SESSION_TABLE")
+        APPOINTMENT_TABLE = os.getenv("APPOINTMENT_TABLE")
+
         self.dynamodb = boto3.resource("dynamodb", endpoint_url='http://localhost:8000', region_name=os.getenv("AWS_REGION"))
+
+        self.session_table = self.dynamodb.Table(SESSION_TABLE)
+        self.user_table = self.dynamodb.Table(USER_TABLE)
+        self.appintment_table = self.dynamodb.Table(APPOINTMENT_TABLE)
+
+
 
     def put_item(self, table_name:str, item:dict):
         table = self.dynamodb.Table(table_name)

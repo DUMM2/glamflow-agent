@@ -1,8 +1,12 @@
 import os
 import boto3
+import boto3.dynamodb
+from boto3.dynamodb.types import Binary
 from dotenv import load_dotenv
 from datetime import datetime
 from boto3.dynamodb.conditions import Key, Attr
+from langgraph.checkpoint.serde.base import SerializerProtocol
+
 
 # dev
 import json
@@ -18,10 +22,12 @@ class Status:
         self.session_table = dynamodb.Table(os.getenv("SESSION_TABLE"))
         self.business_table = dynamodb.Table(os.getenv("BUSINESS_TABLE"))
     
+
     async def session_status(self, user_id:str, business_id:str):
         session = {}
         user_id = int(user_id)
         session_id = str(user_id) +"-"+ str(business_id)
+
         session_response = self.session_table.query(
             KeyConditionExpression= Key("session_id").eq(session_id),
             FilterExpression=Attr("session_status").eq("active")
@@ -32,9 +38,8 @@ class Status:
         if  len(session_response) == 0:
             item = {
                 "session_id":str(user_id) +"-"+ str(business_id),
-                "init_date_time": datetime.now().strftime("%d-%m-%y_%H:%M"),
-                "session_status":"active",
-                "messages_history":[]
+                "init_date_time": datetime.now().strftime("%d-%m-%y_%H:%M:%S"),
+                "session_status":"active"
             }
             self.session_table.put_item(Item=item)
             return item
@@ -47,6 +52,7 @@ class Status:
         session["messages_history"]=session_response.get("messages_history",[])
         return session
 
+
     async def user_status(self, user_id:str, business_id:str):
         status = {}
         user_id = int(user_id)
@@ -58,26 +64,9 @@ class Status:
         )
 
         user_response = user_response.get("Item", {})
-        print(user_response)
-
         status["user_name"] = user_response.get("name", "")
         status["user_id"] = user_id
         status["business_id"] = business_id 
         status["is_register"] = True if "name" in user_response else False
         
         return status
-
-
-            
-
-
-# d = Status()
-# user_id="5571098839"
-# business_id="8877665544"
-
-# session = d.session_status(user_id=user_id)
-# print(session)
-# user_status = d.user_status(user_id=user_id, business_id=business_id)
-# print(user_status)
-
-

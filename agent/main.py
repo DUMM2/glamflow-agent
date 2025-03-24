@@ -14,11 +14,10 @@ if __name__ == "__main__":
 
     session_dict = asyncio.run(stat.session_status(user_id, business_id))
     user_stat_dict = asyncio.run(stat.user_status(user_id, business_id))
-    messages_history = session_dict["messages_history"]
     print(session_dict)
 
     config = {"configurable":{
-        "thread_id":user_id,
+        "session_id":str(user_id) +"-"+ str(business_id),
         "user_id":user_id,
         "user_name":user_stat_dict["user_name"],
         "business_id":business_id,

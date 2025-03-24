@@ -61,7 +61,7 @@ chmod +x setup_dynamodb_local.sh
 ```
 ### Si ya tienes descargado docker 
 ```
-docker run -p 8000:8000 amazon/dynamodb-local -shareDb true
+docker run -p 8000:8000 amazon/dynamodb-local -jar DynamoDBLocal.jar -sharedDb
 ```
 Execute script
 ```sh

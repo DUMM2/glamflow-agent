@@ -7,11 +7,19 @@ from langgraph.checkpoint.memory import MemorySaver
 from agent_appt_management.tools import register_user, finish_session, cancel_appointment, consult_appointment
 from agent_appt_management.prompt import AGENT_PROMPT
 
+from dynamodb_memorysaver import SimpleDynamoDBSaver
+
 load_dotenv()
 
 class AgentAppointmentManagement:
     def __init__(self):
-        self.memory = MemorySaver() # No productivo
+        self.memory = SimpleDynamoDBSaver(
+            table_name=os.getenv("SESSION_TABLE"),
+            max_messages=20,
+            client_config={
+                "endpoint_url":'http://localhost:8000'
+            }
+        )
 
         self.model = ChatOpenAI(
                     model=os.getenv("LLM_MODEL"), 
@@ -37,8 +45,8 @@ class AgentAppointmentManagement:
         response = self.agent.invoke(
             {"messages": [
                 HumanMessage(content=user_input),
-                SystemMessage(content=f'¿El usuario esta registrado? {cfg["configurable"]["is_register"]}'),
-                SystemMessage(content=f'El nombre del usuario es: {cfg["configurable"]["user_name"]}')
+                SystemMessage(content=f'¿El usuario esta registrado? {cfg["configurable"]["is_register"]}', id="00001"),
+                SystemMessage(content=f'El nombre del usuario es: {cfg["configurable"]["user_name"]}', id="00002")
                 ]},
             config=cfg
             )
