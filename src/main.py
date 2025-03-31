@@ -1,7 +1,7 @@
 import asyncio
-import time
-from user_status import Status
-from agent_appt_management.agent import AgentAppointmentManagement
+from utils.status import Status
+from agent import AgentAppointmentManagement
+
 
 if __name__ == "__main__":
     # Harcode user_id==user_phone_number
@@ -9,9 +9,11 @@ if __name__ == "__main__":
     # Hardcode business_id==business_phone_number
     business_id = "5599889966"
 
+    # Instantiate methods
     stat = Status()
     agent = AgentAppointmentManagement()
 
+    # Get User & session status
     session_dict = asyncio.run(stat.session_status(user_id, business_id))
     user_stat_dict = asyncio.run(stat.user_status(user_id, business_id))
     print(session_dict)
@@ -22,7 +24,8 @@ if __name__ == "__main__":
         "user_name":user_stat_dict["user_name"],
         "business_id":business_id,
         "is_register":user_stat_dict["is_register"],
-        "session_init_date_time":session_dict["init_date_time"]
+        "session_init_date_time":session_dict["init_date_time"],
+        "today": user_stat_dict["today"]
         }
     }
     print(config)
@@ -32,7 +35,6 @@ if __name__ == "__main__":
         user_input = input("User: ")
         if user_input == "exit":
             break
-        init_time_2 = time.time()
         response = agent.conversation(user_input, config)
         #print(response["messages"][-1].response_metadata)
         print()

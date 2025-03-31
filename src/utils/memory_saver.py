@@ -1,8 +1,7 @@
 import boto3
 from typing import Any, Dict, Optional, Sequence
-
-# Importamos las clases e interfaces necesarias de LangChain y LangGraph.
 from langchain_core.runnables import RunnableConfig
+from datetime import datetime
 from langgraph.checkpoint.base import (
     BaseCheckpointSaver,
     CheckpointTuple,
@@ -12,7 +11,7 @@ from langgraph.checkpoint.base import (
 )
 from langgraph.checkpoint.serde.base import SerializerProtocol
 
-class SimpleDynamoDBSaver(BaseCheckpointSaver):
+class DynamoDBSaver(BaseCheckpointSaver):
     """
     Saver simplificado para DynamoDB que utiliza una única tabla para almacenar el checkpoint.
     
@@ -35,7 +34,6 @@ class SimpleDynamoDBSaver(BaseCheckpointSaver):
         # Se inicializa la clase base, pasando el objeto 'serde'
         super().__init__(serde=serde)
         # Se crean el cliente y el recurso de DynamoDB usando boto3.
-        self.client = boto3.client("dynamodb", **(client_config or {}))
         self.dynamodb = boto3.resource("dynamodb", **(client_config or {}))
         # Nombre de la tabla en DynamoDB
         self.table_name = table_name
@@ -176,3 +174,85 @@ class SimpleDynamoDBSaver(BaseCheckpointSaver):
         Método no implementado para este saver simplificado.
         """
         #raise NotImplementedError("El método 'put_writes' no se implementa en SimpleDynamoDBSaver.")
+
+
+    async def aget_tuple(self, config: RunnableConfig) -> Optional[CheckpointTuple]:
+            """Get the checkpoint tuple from DynamoDB"""
+            configurable = self.validate_configurable(config.get("configurable"))
+            key = {
+                "session_id": configurable["session_id"],
+                "created_at": configurable["created_at"]
+            }
+            item = self.dynamodb.get_checkpoint(key)
+            
+            try:
+                # Deserialize the checkpoint and metadata
+                checkpoint = self.serde.loads_typed([item["type"], item["checkpoint"].value])
+                metadata = self.serde.loads_typed([item["type"], item["metadata"].value])
+
+                if isinstance(checkpoint, dict):
+                    checkpoint_truncated = checkpoint.copy()
+                    channel_values = checkpoint.get("channel_values", {}).copy()
+                    if "messages" in channel_values:
+                        messages = channel_values["messages"]
+                        channel_values["messages"] = messages[-self.max_messages:]
+                    checkpoint_truncated["channel_values"] = channel_values
+                else:
+                    checkpoint_truncated = checkpoint
+
+                return CheckpointTuple(
+                    config={"configurable": key},
+                    checkpoint=checkpoint_truncated,
+                    metadata=metadata,
+                    parent_config=None,
+                    pending_writes=[]
+                )
+
+            except KeyError:
+                return None
+
+
+    async def aput(
+            self,
+            config: RunnableConfig,
+            checkpoint: Checkpoint,
+            metadata: Optional[CheckpointMetadata] = None,
+            new_versions: Optional[ChannelVersions] = None
+        ) -> None:
+        """Put the checkpoint into DynamoDB"""
+        configurable = self.validate_configurable(config.get("configurable"))
+        session_id = configurable["session_id"]
+        created_at = configurable["created_at"]
+
+        key = {
+            "session_id": session_id,
+            "created_at": created_at
+        }
+
+        # Serialize the checkpoint and metadata
+        type1, serialized_checkpoint = self.serde.dumps_typed(checkpoint)
+        type2, serialized_metadata = self.serde.dumps_typed(metadata)
+
+        if type1 != type2:
+            raise ValueError("Checkpoint and metadata types do not match")
+        
+        # Update the item
+        if self.dynamodb.save_checkpoint(key, type1, serialized_checkpoint, serialized_metadata, datetime.now().isoformat()):
+            return {"configurable": key}
+        else:
+            raise ValueError("Error saving checkpoint")
+
+
+    async def alist(self, config: RunnableConfig) -> None:
+        """No implemented"""
+        #raise NotImplementedError("List is not implemented")
+        
+    async def aput_writes(
+            self, 
+            config: RunnableConfig,
+            writes:  None,
+            task_id: str,
+            task_path: str = ""
+        ) -> None:
+        """No implemented"""
+        #raise NotImplementedError("put_writes is not implemented")

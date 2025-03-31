@@ -5,8 +5,8 @@ from twilio.rest import Client
 from twilio.request_validator import RequestValidator
 from fastapi import FastAPI, Form, Response, Request, HTTPException
 from fastapi.responses import StreamingResponse
-from user_status import Status
-from agent_appt_management.agent import AgentAppointmentManagement
+from agent.agent.utils.user_status import Status
+from agent.src.agent import AgentAppointmentManagement
 
 load_dotenv()
 

@@ -1,13 +1,5 @@
 #!/bin/bash
 
-echo "🔹 Descargando Docker DynamoDB Local..."
-docker pull amazon/dynamodb-local
-
-echo "🔹 Configurando el perfil local en AWS CLI..."
-aws configure --profile local
-
-echo "✅ Configuración completada."
-
 # Crear Tabla User
 echo "🔹 Creando la tabla gf-user-dev..."
 aws dynamodb create-table \
@@ -20,19 +12,29 @@ aws dynamodb create-table \
 echo "✅ Tabla gf-user-dev creada con éxito."
 
 # Crear Tabla Appointment
-echo "🔹 Creando la tabla gf-appointment-dev..."
+echo ":small_blue_diamond: Creando la tabla gf-appointment-dev..."
 aws dynamodb create-table \
     --table-name gf-appointment-dev \
     --attribute-definitions \
         AttributeName=user_id,AttributeType=N \
-        AttributeName=date_time,AttributeType=S \
+        AttributeName=date_appointment,AttributeType=S \
+        AttributeName=business_id,AttributeType=N \
     --key-schema \
         AttributeName=user_id,KeyType=HASH \
-        AttributeName=date_time,KeyType=RANGE \
+        AttributeName=date_appointment,KeyType=RANGE \
     --billing-mode PAY_PER_REQUEST \
+    --global-secondary-indexes '[
+        {
+            "IndexName": "BusinessIndex",
+            "KeySchema": [
+                {"AttributeName": "business_id", "KeyType": "HASH"}
+            ],
+            "Projection": {"ProjectionType": "ALL"}
+        }
+    ]' \
     --endpoint-url http://localhost:8000 \
     --profile local
-echo "✅ Tabla gf-appointment-dev creada con éxito."
+echo ":white_check_mark: Tabla gf-appointment-dev creada con éxito."
 
 # Crear Tabla Session con Global Secondary Index (GSI)
 echo "🔹 Creando la tabla gf-session-dev con índice secundario..."

@@ -1,11 +1,12 @@
 
-## DEV
-The proyect has configured for run with DynamoDB locally, because boto3 was pointed to local. 
-Change this for prod environment.
+# Agente Piloto
+Este es el trabajo de un agente para administracion de citas mediante whatsapp. Las funciones principales son agendar, reagendar, cancelar citas.
 
-## Run proyect
+Tambien como piloto mantiene la persistencia de los datos.
 
-For run any part of aplication you need to set "".env"" file as folows:
+## Configuraciones necesarias
+
+Para ejecutar el proyecto es necesario tener un archivo de ambiente "".env"", similar a este:
 ```sh
 TWILIO_ACCOUNT_SID=twilio-token
 TWILIO_AUTH_TOKEN=twilio-secret
@@ -15,35 +16,42 @@ AWS_ACCESS_KEY_ID=fackeAccesKeyID
 AWS_SECRET_ACCESS_KEY=fackeSecretAccesKey
 AWS_REGION=mx-central-1
 
-LLM_MODEL = gpt-4o-mini
-USER_TABLE = gf-user-dev
+LLM_MODEL=gpt-4o-mini
+USER_TABLE=gf-user-dev
 APPOINTMENT_TABLE=gf-appointment-dev
 SESSION_TABLE=gf-session-dev
 BUSINESS_TABLE=gf-business-dev
-```
-### Dependences
-Install and setup ngrok:
 
-### Full aplication
-For run all aplication you need twilio tokens defined in .env.
-Afther  go to agen dir that run:
-```sh
-cd agent
+#DEV
+URL_DYNAMODB_LOCAL=http://localhost:8000
+AWS_ACCESS_KEY_ID=fackeAccesKeyID
+AWS_SECRET_ACCESS_KEY=fackeSecretAccesKey
 ```
-and run service(API) locally:
+### Dependencias
+Instala estas dependencias para desarrollo:
+* Ngrok
+* Docker
+* AWS NoSQL-Workbench
+
+### Ejecutar Agente (Whatsapp)
+Para ejecutar la integracion con WhatsApp debe tenerce los token de Twilio. Debes tener una cuenta configurada para usar el webhook.
+
+Dentro de la carpeta fuente "src":
+```sh
+cd src
+```
+aejecuta la API localmente:
 ```sh
 uvicorn whatsapp:app --host 0.0.0.0 --port 80 --reload
 ```
-To expose that to web use ngrok(just for dev or test). No use in a production:
+Para exponer el servicio e ntegrarlo a twilio, crea un puente con ngrok a twilio:
 ```sh
 ngrok http --url=infinite-seriously-racer.ngrok-free.app 80
 ```
 
-Configure twilio endpoint or webhook to point ngrok url.
 
-### Run Agent locally
-This only ejecute the Agent on local [for dev].
-for this inside agent directory ejecute this in terminal:
+### Ejecuta el Agente sin WhatsApp
+ESto solo ejecuta el angente de manera local, con proposito de hacer desarrollo:
 ```sh
 python main.py
 ```
@@ -52,18 +60,22 @@ python main.py
 ## Setup DynamoDB locally
 To setup DynamoDB locally, you need **Docker** and **aws cli** installed on your machine.
 
-
-## Ejecute
-
-Open a terminal in root directory. Alow ejecution acces for script with:
+Descarga la imagen docker:
 ```sh
-chmod +x setup_dynamodb_local.sh
+docker pull amazon/dynamodb-local
 ```
-### Si ya tienes descargado docker 
+
+Configura un perfil local de AWS:
+```sh
+aws configure --profile local
 ```
+
+Inicia la instancia de dynamodb
+```sh
 docker run -p 8000:8000 amazon/dynamodb-local -jar DynamoDBLocal.jar -sharedDb
 ```
-Execute script
+
+Crea las tablas en la base dynamodb
 ```sh
-./setup_dynamodb.sh
+chmod +x setup_dynamodb_local.sh
 ```
