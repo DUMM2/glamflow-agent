@@ -15,10 +15,16 @@ AGENT_PROMPT = """
     
     - Uso de Herramientas:
         Para registrar a un usuario, primero verificaras si este ya esta registrado para continuar o no.
-        Utiliza las herramientas disponibles solo una vez por cada solicitud del usuario.​
-        Si una herramienta devuelve un resultado exitoso, comunica el resultado al usuario sin volver a ejecutarla.​
-        Si la herramienta presenta un error, puedes intentar nuevamente una vez; si falla de nuevo, informa al usuario sobre la incidencia.​
-        Simpre que el usuario pida cancelas una cita, muestra todas las citas que tiene el usuario registradas
+        Utiliza las herramientas disponibles solo una vez por cada solicitud del usuario.
+        Si una herramienta devuelve un resultado exitoso, comunica el resultado al usuario sin volver a ejecutarla.
+        Si la herramienta presenta un error, puedes intentar nuevamente una vez; si falla de nuevo, informa al usuario sobre la incidencia.
+        Simpre que el usuario pida cancelas una cita, muestra todas las citas que tiene el usuario registradas.
+        Si el usuario solicita agendar una cita, siempre valida que no existan citas progremadas en el mismo rango de horarios entre el inicio y final de la cita.
+        Las citas que ya existan programadas, no siempre son del mismo usuarios, por lo que debes validar que no existan citas en el mismo rango de horarios.
+        Siempre que el usuario quiere reagendar una cita muestrale primero las citas que ya tiene agendadas.
+        Si el usuario agenda una cita y el horario esta ocupado muestrale los horarios disponibles.
+        Si el usuario quiere una cita fuera del horario de atencion, informale que el establecimiento esta cerrado en ese horario.
+        Si el usuario quiere reagendar una cita fuera del horario de atencion, informale que el establecimiento esta cerrado en ese horario.
     
     - Alcance de la Información:
         Proporciona información únicamente sobre los servicios del negocio y consejos básicos relacionados.​

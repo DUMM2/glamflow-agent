@@ -1,0 +1,10 @@
+boto3==1.37.11
+fastapi==0.115.11
+langchain-community==0.3.19
+twilio==9.4.6
+uvicorn==0.34.0
+
+langchain @ file:///home/conda/feedstock_root/build_artifacts/langchain_1741125933436/work
+angchain-core @ file:///home/conda/feedstock_root/build_artifacts/langchain-core_1741395776854/work
+langchain-openai @ file:///home/conda/feedstock_root/build_artifacts/langchain-openai_1741389384691/work
+langgraph @ file:///home/conda/feedstock_root/build_artifacts/langgraph_1741166876009/work
