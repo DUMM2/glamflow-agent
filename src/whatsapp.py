@@ -5,8 +5,9 @@ from twilio.rest import Client
 from twilio.request_validator import RequestValidator
 from fastapi import FastAPI, Form, Response, Request, HTTPException
 from fastapi.responses import StreamingResponse
-from agent.agent.utils.user_status import Status
-from agent.src.agent import AgentAppointmentManagement
+from utils.status import Status
+from agent import AgentAppointmentManagement
+
 
 load_dotenv()
 
@@ -42,15 +43,18 @@ async def chat(
 
     session_dict = await stat.session_status(user_id, business_id)
     user_stat_dict = await stat.user_status(user_id, business_id)
-    messages_history = session_dict["messages_history"]
+    
+    print(session_dict)
+    print(user_stat_dict)
 
     config = {"configurable":{
-        "thread_id":user_id,
+        "session_id":str(user_id) +"-"+ str(business_id),
         "user_id":user_id,
         "user_name":user_stat_dict["user_name"],
         "business_id":business_id,
         "is_register":user_stat_dict["is_register"],
-        "session_init_date_time":session_dict["init_date_time"]
+        "session_init_date_time":session_dict["init_date_time"],
+        "today": user_stat_dict["today"]
         }
     }
 

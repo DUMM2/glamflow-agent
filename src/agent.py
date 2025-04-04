@@ -57,10 +57,10 @@ class AgentAppointmentManagement:
                 SystemMessage(content=f'El nombre del usuario es: {cfg["configurable"]["user_name"]}', id="00002"),
                 SystemMessage(content=f'La fecha de hoy es: {cfg["configurable"]["today"]}', id="00003")
                 ]}
-        print(messages)
+        #print(messages)
         response = self.agent.invoke(
             input=messages,
             config=cfg
             )
-        print(response)
+        #print(response)
         return response
